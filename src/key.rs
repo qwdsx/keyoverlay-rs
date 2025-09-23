@@ -4,6 +4,7 @@ pub trait KeyExt {
     fn to_str(&self) -> &'static str;
 }
 
+// TODO: add rest of the keys
 impl KeyExt for Key {
     fn to_str(&self) -> &'static str {
         match self {
