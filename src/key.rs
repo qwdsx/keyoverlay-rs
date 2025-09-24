@@ -1,16 +1,15 @@
-use rdev::Key;
+use rdev::{EventType, Key, Keyboard, KeyboardState};
 
 pub trait KeyExt {
-    fn to_str(&self) -> &'static str;
+    fn to_string(&self) -> String;
 }
 
-// TODO: add rest of the keys
+// TODO: support mapping from the actual symbols to enum variants
 impl KeyExt for Key {
-    fn to_str(&self) -> &'static str {
-        match self {
-            Self::KeyZ => "Z",
-            Self::KeyX => "X",
-            _ => "(?)",
-        }
+    fn to_string(&self) -> String {
+        let mut keyboard = Keyboard::new().unwrap();
+        let key = keyboard.add(&EventType::KeyPress(*self));
+
+        key.map(|s| s.to_uppercase()).unwrap_or("(?)".to_string())
     }
 }

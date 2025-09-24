@@ -16,7 +16,7 @@ use crate::{config::Config, key::KeyExt};
 
 struct KeyColumn {
     key: Key,
-    label: &'static str,
+    label: String,
     pressed: bool,
     events: VecDeque<SystemTime>,
 }
@@ -34,7 +34,7 @@ impl App {
                 .iter()
                 .map(|key| KeyColumn {
                     key: key.to_owned(),
-                    label: key.to_str(),
+                    label: key.to_string(),
                     pressed: false,
                     events: VecDeque::with_capacity(64),
                 })
@@ -65,7 +65,7 @@ impl App {
                     key_column.events.pop_back();
                 }
 
-                key_column.events.push_front(SystemTime::now());
+                key_column.events.push_front(event.time);
             })
             .expect("failed to set up listener");
         });
@@ -164,7 +164,7 @@ impl Render for App {
                                     .border_color(rgb(0xffffff))
                                     .justify_center()
                                     .items_center()
-                                    .child(key_column.label),
+                                    .child(key_column.label.to_owned()),
                             )
                             .children(blocks)
                     })),
