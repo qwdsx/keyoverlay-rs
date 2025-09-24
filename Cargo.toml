@@ -7,5 +7,9 @@ license = "ISC"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.100"
+directories = "6.0.0"
+figment = { version = "0.10.19", features = ["toml"] }
 gpui = { git = "https://github.com/zed-industries/zed" }
-rdev = "0.5.3"
+rdev = { version = "0.5.3", features = ["serialize"] }
+serde = "1.0.226"

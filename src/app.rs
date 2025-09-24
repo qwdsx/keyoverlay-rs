@@ -12,7 +12,7 @@ use gpui::{
 };
 use rdev::{EventType, Key};
 
-use crate::key::KeyExt;
+use crate::{config::Config, key::KeyExt};
 
 struct KeyColumn {
     key: Key,
@@ -22,13 +22,15 @@ struct KeyColumn {
 }
 
 pub struct App {
+    config: Config,
     keys: Arc<RwLock<Vec<KeyColumn>>>,
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(config: Config) -> Self {
         let keys = Arc::new(RwLock::new(
-            [Key::KeyZ, Key::KeyX]
+            config
+                .keys
                 .iter()
                 .map(|key| KeyColumn {
                     key: key.to_owned(),
@@ -68,7 +70,7 @@ impl App {
             .expect("failed to set up listener");
         });
 
-        Self { keys }
+        Self { config, keys }
     }
 }
 
@@ -77,85 +79,96 @@ impl Render for App {
         window.request_animation_frame();
 
         let now = SystemTime::now();
-        let key_size = 40.;
-        let gap = 12.;
-        let scroll_speed = 360.;
-        let active_color = 0x808080;
-        let padding = 16.;
+
+        let Config {
+            key_size,
+            key_spacing,
+            scroll_speed,
+            active_color,
+            padding,
+            ..
+        } = self.config;
 
         div()
             .size_full()
             .flex()
-            .p(px(padding))
+            .p(px(padding as f32))
             .bg(rgb(0x000000))
             .justify_end()
             .items_end()
             .text_color(rgb(0xffffff))
-            .child(div().flex().flex_row().gap(px(gap)).children(
-                self.keys.read().unwrap().iter().map(|key_column| {
-                    let pressed = key_column.pressed;
-                    let bg_color = if pressed { active_color } else { 0x000000 };
-
-                    let mut blocks: Vec<Div> = vec![];
-
-                    let mut events_iter = key_column
-                        .pressed
-                        .then_some(now)
-                        .into_iter()
-                        .chain(key_column.events.iter().copied());
-
-                    while let Some(release_time) = events_iter.next() {
-                        let Some(press_time) = events_iter.next() else {
-                            break;
+            .child(
+                div()
+                    .flex()
+                    .flex_row()
+                    .gap(px(key_spacing as f32))
+                    .children(self.keys.read().unwrap().iter().map(|key_column| {
+                        let bg_color = if key_column.pressed {
+                            rgb(active_color as u32)
+                        } else {
+                            rgba(0x00000000)
                         };
 
-                        let height = release_time
-                            .duration_since(press_time)
-                            .map(|d| d.as_secs_f32())
-                            .unwrap_or(0.)
-                            .mul(scroll_speed)
-                            .floor();
+                        let mut blocks: Vec<Div> = vec![];
 
-                        let pos = now
-                            .duration_since(release_time)
-                            .map(|d| d.as_secs_f32())
-                            .unwrap_or(0.)
-                            .mul(scroll_speed)
-                            .floor();
+                        let mut events_iter = key_column
+                            .pressed
+                            .then_some(now)
+                            .into_iter()
+                            .chain(key_column.events.iter().copied());
 
-                        if pos > window.viewport_size().height.0 {
-                            break;
+                        while let Some(release_time) = events_iter.next() {
+                            let Some(press_time) = events_iter.next() else {
+                                break;
+                            };
+
+                            let height = release_time
+                                .duration_since(press_time)
+                                .map(|d| d.as_secs_f32())
+                                .unwrap_or(0.)
+                                .mul(scroll_speed as f32)
+                                .floor();
+
+                            let pos = now
+                                .duration_since(release_time)
+                                .map(|d| d.as_secs_f32())
+                                .unwrap_or(0.)
+                                .mul(scroll_speed as f32)
+                                .floor();
+
+                            if pos > window.viewport_size().height.0 {
+                                break;
+                            }
+
+                            let block = div()
+                                .absolute()
+                                .bottom(px(pos + key_size as f32))
+                                .w(px(key_size as f32))
+                                .h(px(height))
+                                .bg(rgb(active_color as u32));
+
+                            blocks.push(block);
                         }
 
-                        let block = div()
-                            .absolute()
-                            .bottom(px(pos + key_size))
-                            .w(px(key_size))
-                            .h(px(height))
-                            .bg(rgb(active_color));
-
-                        blocks.push(block);
-                    }
-
-                    div()
-                        .flex()
-                        .flex_col_reverse()
-                        .w(px(key_size))
-                        .relative()
-                        .child(
-                            div()
-                                .flex()
-                                .size(px(key_size))
-                                .bg(rgb(bg_color))
-                                .border_2()
-                                .border_color(rgb(0xffffff))
-                                .justify_center()
-                                .items_center()
-                                .child(key_column.label),
-                        )
-                        .children(blocks)
-                }),
-            ))
+                        div()
+                            .flex()
+                            .flex_col_reverse()
+                            .w(px(key_size as f32))
+                            .relative()
+                            .child(
+                                div()
+                                    .flex()
+                                    .size(px(key_size as f32))
+                                    .bg(bg_color)
+                                    .border_2()
+                                    .border_color(rgb(0xffffff))
+                                    .justify_center()
+                                    .items_center()
+                                    .child(key_column.label),
+                            )
+                            .children(blocks)
+                    })),
+            )
             .child(
                 div()
                     .absolute()
