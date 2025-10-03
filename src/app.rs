@@ -163,8 +163,7 @@ impl Render for App {
                                     .justify_center()
                                     .items_center()
                                     .text_lg()
-                                    .text_color(rgb(0x606060))
-                                    .child(key_column.label.to_owned()),
+                                    .text_color(rgb(0x606060)),
                                 div()
                                     .flex()
                                     .bg(bg_color)
