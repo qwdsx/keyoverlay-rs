@@ -7,8 +7,13 @@ use rdev::Key;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
+pub struct K {
+    pub key: rdev::Key,
+    pub label: String
+}
+#[derive(Deserialize, Serialize)]
 pub struct Config {
-    pub keys: Vec<Key>,
+    pub keys: Vec<K>,
     pub key_size: usize,
     pub key_spacing: usize,
     pub scroll_speed: usize,
@@ -19,8 +24,17 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
-            keys: vec![Key::KeyZ, Key::KeyX],
-            key_size: 64,
+            keys: vec![
+                K {
+                    key: Key::KeyZ,
+                    label: String::from("K1")
+                },
+                K {
+                    key: Key::KeyX,
+                    label: String::from("K2")
+                }
+            ],
+            key_size: 40,
             key_spacing: 16,
             scroll_speed: 360,
             active_color: 0x808080,
