@@ -33,8 +33,8 @@ impl App {
                 .keys
                 .iter()
                 .map(|key| KeyColumn {
-                    key: key.to_owned(),
-                    label: key.to_string(),
+                    key: key.key.to_owned(),
+                    label: key.label.to_string(),
                     pressed: false,
                     events: VecDeque::with_capacity(64),
                 })
@@ -102,11 +102,12 @@ impl Render for App {
                     .flex()
                     .flex_row()
                     .gap(px(key_spacing as f32))
+                    .pb(px(5.))
                     .children(self.keys.read().unwrap().iter().map(|key_column| {
                         let bg_color = if key_column.pressed {
-                            rgb(active_color as u32)
+                            rgb(0xffffff)
                         } else {
-                            rgba(0x00000000)
+                            rgb(active_color as u32)
                         };
 
                         let mut blocks: Vec<Div> = vec![];
@@ -142,9 +143,10 @@ impl Render for App {
 
                             let block = div()
                                 .absolute()
-                                .bottom(px(pos + key_size as f32))
-                                .w(px(key_size as f32))
+                                .bottom(px(pos))
+                                .w(px(key_size as f32 * 0.9))
                                 .h(px(height))
+                                .rounded_sm()
                                 .bg(rgb(active_color as u32));
 
                             blocks.push(block);
@@ -155,18 +157,28 @@ impl Render for App {
                             .flex_col_reverse()
                             .w(px(key_size as f32))
                             .relative()
-                            .child(
+                            .children([
                                 div()
                                     .flex()
-                                    .size(px(key_size as f32))
-                                    .bg(bg_color)
-                                    .border_2()
-                                    .border_color(rgb(0xffffff))
                                     .justify_center()
                                     .items_center()
+                                    .text_lg()
+                                    .text_color(rgb(0x606060))
                                     .child(key_column.label.to_owned()),
-                            )
-                            .children(blocks)
+                                div()
+                                    .flex()
+                                    .bg(bg_color)
+                                    .w(px(key_size as f32))
+                                    .h_2()
+                                    .rounded_sm()
+                                    .justify_center()
+                                    .items_center(),
+                                div()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .children(blocks)
+                            ])
                     })),
             )
             .child(
