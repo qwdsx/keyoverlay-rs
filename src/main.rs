@@ -1,4 +1,4 @@
-use gpui::{AppContext, Application, Size, TitlebarOptions, WindowOptions, px};
+use gpui::{px, size, AppContext, Application, Bounds, TitlebarOptions, WindowBounds, WindowOptions};
 
 use app::App;
 
@@ -14,7 +14,7 @@ fn main() -> anyhow::Result<()> {
     let min_width = config.padding * 2
         + config.keys.len() * config.key_size
         + config.key_spacing * config.keys.len().saturating_sub(1);
-    let min_height = 320;
+    let max_height = 400;
 
     Application::new().run(move |cx: &mut gpui::App| {
         cx.open_window(
@@ -25,7 +25,16 @@ fn main() -> anyhow::Result<()> {
                 }),
                 app_id: Some("keyoverlay".to_string()),
                 show: true,
-                window_min_size: Some(Size::new(px(min_width as f32), px(min_height as f32))),
+                window_bounds: Some(WindowBounds::Windowed(
+                    Bounds::centered(
+                        None,
+                        size(
+                            px(min_width as f32),
+                            px(max_height as f32)
+                        ),
+                        cx
+                    )
+                )),
                 ..Default::default()
             },
             |_, cx| cx.new(|_| App::new(config)),
